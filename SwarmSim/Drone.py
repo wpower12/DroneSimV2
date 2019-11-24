@@ -39,6 +39,12 @@ class Drone():
 		self.PID_X = PID(C.PID_P, C.PID_I, C.PID_D, setpoint=x)
 		self.PID_Y = PID(C.PID_P, C.PID_I, C.PID_D, setpoint=y)
 		self.PID_Z = PID(C.PID_P, C.PID_I, C.PID_D, setpoint=z)
+		# self.PID_X.output_limits = (0, C.MAX_JERK)
+		# self.PID_Y.output_limits = (0, C.MAX_JERK)
+		# self.PID_Z.output_limits = (0, C.MAX_JERK)
+		# self.PID_X.proportional_on_measurement = True
+		# self.PID_Y.proportional_on_measurement = True
+		# self.PID_Z.proportional_on_measurement = True
 
 	def update(self):
 		dAcc_x = self.PID_X(self.pos[0])

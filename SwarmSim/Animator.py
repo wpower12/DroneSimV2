@@ -7,9 +7,9 @@ class Animator():
 		plt.ion()
 		self.fig = plt.figure()
 		self.ax  = self.fig.add_subplot(111, projection='3d')
-		self.xlim = [-5,5]
-		self.ylim = [-5,5]
-		self.zlim = [ 0,10]
+		self.xlim = [0,100]
+		self.ylim = [0,100]
+		self.zlim = [0,7]
 
 	def plot_drones(self, drones):
 		plt.cla()

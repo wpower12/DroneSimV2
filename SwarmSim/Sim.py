@@ -37,6 +37,11 @@ class Sim():
 			d.pos += wind_dev
 			d.update()
 
+	def set_swarm_target_relative(self, dpos):
+		delta = np.asarray(dpos)
+		for d in self.drones:
+			d.target = d.pos + delta
+			d.init_PIDs() 
 
 	def dump_state(self):
 		for d in self.drones:
