@@ -64,7 +64,7 @@ class Drone():
 		self.H_pos.append(np.copy(self.pos))
 
 		# Save that in the estimated position
-		self.pos_estimate = self.pos
+		self.pos_estimate = np.copy(self.pos)
 
 	def update_inference(self):
 		# Apply output of model to predict deviation from Wind

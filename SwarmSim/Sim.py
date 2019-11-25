@@ -36,12 +36,11 @@ class Sim():
 		wind_dev = self.wind.sample_wind() * C.DT
 
 		for d in self.drones:
-			d.pos += wind_dev
-
 			if self.training:
 				d.update_training()
 			else:
 				d.update_inference()
+			d.pos += wind_dev
 
 	def set_swarm_target_relative(self, dpos):
 		delta = np.asarray(dpos)

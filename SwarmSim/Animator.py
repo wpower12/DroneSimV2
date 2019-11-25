@@ -33,6 +33,7 @@ class Animator():
 			if len(d.H_pos) > 0:
 				s_hist = np.vstack(d.H_pos)
 				self.ax.plot(s_hist[:,0], s_hist[:,1], s_hist[:,2], 'k:')
+	
 		else: # If in inference:
 			# Draw drone at d.pos
 			# Draw smaller dot at d.pos_est
@@ -40,6 +41,7 @@ class Animator():
 			# Draw history of ESTIMATED pos from d.H_pos_est
 			x, y, z = d.pos
 			self.ax.plot([x], [y], [z], 'k.')
+			
 			x, y, z = d.pos_estimate
 			self.ax.plot([x], [y], [z], 'r.')
 
