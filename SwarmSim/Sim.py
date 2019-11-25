@@ -11,6 +11,7 @@ class Sim():
 		self.drones = []
 		self.wind = Wind.Wind()
 		self.anm = Animator.Animator()
+		self.training = True;
 
 		if shape == "cube":
 			# For now, if cube, assume num_drones has a perfect
@@ -28,14 +29,19 @@ class Sim():
 						d.init_PIDs()
 						self.drones.append(d)
 
-
 	def tick(self):
-		self.anm.plot_drones(self.drones)
+		self.anm.plot_drones(self.drones, self.training)
+
 		# All drones see the same 'wind' naive assumption
 		wind_dev = self.wind.sample_wind() * C.DT
+
 		for d in self.drones:
 			d.pos += wind_dev
-			d.update()
+
+			if self.training:
+				d.update_training()
+			else:
+				d.update_inference()
 
 	def set_swarm_target_relative(self, dpos):
 		delta = np.asarray(dpos)
