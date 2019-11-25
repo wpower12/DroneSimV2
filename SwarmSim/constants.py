@@ -1,5 +1,7 @@
 DT = 0.01
 
+DRONE_MASS = 1.0
+
 MAX_VEL = 1.0
 MAX_ACC = 1.0
 MAX_JERK = 1.0 # Max value that can be applied to acc in a dt

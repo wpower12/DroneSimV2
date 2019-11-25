@@ -32,15 +32,31 @@ class Sim():
 	def tick(self):
 		self.anm.plot_drones(self.drones, self.training)
 
-		# All drones see the same 'wind' naive assumption
+		# All drones see the same 'wind' 
 		wind_dev = self.wind.sample_wind() * C.DT
+		d.pos += wind_dev
 
 		for d in self.drones:
 			if self.training:
 				d.update_training()
 			else:
 				d.update_inference()
-			d.pos += wind_dev
+
+		if self.training:
+			self.distribute_models()
+
+	def distribute_models(self):
+		# Share the models between all drones. 2 Passes?
+		# Collect all models
+		models = []
+		for d in self.drones:
+			# TODO - How do we encode them? Just copy a reference?
+			pass
+
+		# Share all models
+		for d in self.drones:
+			# d.models = models # Is it that simple?
+			pass
 
 	def set_swarm_target_relative(self, dpos):
 		delta = np.asarray(dpos)

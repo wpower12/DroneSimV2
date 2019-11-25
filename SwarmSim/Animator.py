@@ -24,30 +24,17 @@ class Animator():
 		plt.pause(0.001)
 
 	def plot_drone(self, d, in_training=True):
-		if in_training:
-			# Draw drone as sphere at d.pos
-			# Draw history in H_pos as TODO_PICK_COLOR
-			x, y, z = d.pos
-			self.ax.plot([x], [y], [z], 'k.')
+		x, y, z = d.pos
+		self.ax.plot([x], [y], [z], 'k.')
 
-			if len(d.H_pos) > 0:
-				s_hist = np.vstack(d.H_pos)
-				self.ax.plot(s_hist[:,0], s_hist[:,1], s_hist[:,2], 'k:')
-	
-		else: # If in inference:
-			# Draw drone at d.pos
-			# Draw smaller dot at d.pos_est
-			# Draw history of ACTUAL    pos from d.H_pos
-			# Draw history of ESTIMATED pos from d.H_pos_est
-			x, y, z = d.pos
-			self.ax.plot([x], [y], [z], 'k.')
-			
+		if len(d.H_pos) > 0:
+			s_hist = np.vstack(d.H_pos)
+			self.ax.plot(s_hist[:,0], s_hist[:,1], s_hist[:,2], 'k:')
+
+		if not in_training: # If in inference:
 			x, y, z = d.pos_estimate
 			self.ax.plot([x], [y], [z], 'r.')
 
-			if len(d.H_pos) > 0:
-				s_hist = np.vstack(d.H_pos)
-				self.ax.plot(s_hist[:,0], s_hist[:,1], s_hist[:,2], 'k:')
 			if len(d.H_pos_est) > 0:
 				s_hist = np.vstack(d.H_pos_est)
 				self.ax.plot(s_hist[:,0], s_hist[:,1], s_hist[:,2], 'r:')
