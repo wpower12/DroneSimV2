@@ -34,9 +34,9 @@ class Sim():
 
 		# All drones see the same 'wind' 
 		wind_dev = self.wind.sample_wind() * C.DT
-		d.pos += wind_dev
 
 		for d in self.drones:
+			d.pos += wind_dev
 			if self.training:
 				d.update_training()
 			else:
