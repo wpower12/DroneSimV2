@@ -103,6 +103,10 @@ class Drone():
 		# it THINKS is the setpoints. Also allows us to draw the 'real'
 		# location of the drone versus the place it thinks it is. 
 
+	def model_update(self):
+		# TODO
+		pass
+
 	def model_predict(self):
 		# TODO 
 		return np.zeros((3))
