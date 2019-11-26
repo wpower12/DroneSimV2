@@ -1,7 +1,7 @@
 from SwarmSim.Sim import *
 
-NUM_TRAINING_STEPS  = 20
-NUM_INFERENCE_STEPS = 200
+NUM_TRAINING_STEPS  = 50
+NUM_INFERENCE_STEPS = 400
 
 N = 27
 sim = Sim(N, shape="cube")
