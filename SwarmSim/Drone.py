@@ -40,11 +40,11 @@ class Drone():
 		self.PID_Y = PID(C.PID_P, C.PID_I, C.PID_D, setpoint=y)
 		self.PID_Z = PID(C.PID_P, C.PID_I, C.PID_D, setpoint=z)
 
-	def update_training(self):
+	def update_state_from_pos(self, pos):
 		# Changes in acc are the outputs of the PID controllers
-		dAcc_x = self.PID_X(self.pos[0])
-		dAcc_y = self.PID_Y(self.pos[1])
-		dAcc_z = self.PID_Z(self.pos[2])
+		dAcc_x = self.PID_X(pos[0])
+		dAcc_y = self.PID_Y(pos[1])
+		dAcc_z = self.PID_Z(pos[2])
 
 		# Update acc's by clamp adding the above to them.
 		n_acc_x = clamp_add(self.acc[0], dAcc_x, C.MAX_ACC)
@@ -59,6 +59,10 @@ class Drone():
 		n_vel_z = clamp_add(self.vel[2], n_acc_z*C.DT, C.MAX_VEL)
 		self.vel = np.asarray([n_vel_x, n_vel_y, n_vel_z])
 
+	def update_training(self):
+		# In training, we use the 'real' position
+		self.update_state_from_pos(self.pos)
+
 		# Update position.
 		self.pos += self.vel
 		self.H_pos.append(np.copy(self.pos))
@@ -72,21 +76,8 @@ class Drone():
 		# Apply output of model to predict deviation from Wind
 		self.pos_estimate += self.model_predict() # I think? more on this later.
 
-		# Now we do the same thing we do during training, but use this
-		# estimated position as our input to the PID.
-		dAcc_x = self.PID_X(self.pos_estimate[0])
-		dAcc_y = self.PID_Y(self.pos_estimate[1])
-		dAcc_z = self.PID_Z(self.pos_estimate[2])
-
-		n_acc_x = clamp_add(self.acc[0], dAcc_x, C.MAX_ACC)
-		n_acc_y = clamp_add(self.acc[1], dAcc_y, C.MAX_ACC)
-		n_acc_z = clamp_add(self.acc[2], dAcc_z, C.MAX_ACC)
-		self.acc = np.asarray([n_acc_x, n_acc_y, n_acc_z])
-
-		n_vel_x = clamp_add(self.vel[0], n_acc_x*C.DT, C.MAX_VEL)
-		n_vel_y = clamp_add(self.vel[1], n_acc_y*C.DT, C.MAX_VEL)
-		n_vel_z = clamp_add(self.vel[2], n_acc_z*C.DT, C.MAX_VEL)
-		self.vel = np.asarray([n_vel_x, n_vel_y, n_vel_z])
+		# In inference, we use the ESTIMATE of pos to update
+		self.update_state_from_pos(self.pos_estimate)
 
 		# Finally, update current estimate of position
 		self.H_pos_est.append(np.copy(self.pos_estimate))
@@ -98,10 +89,6 @@ class Drone():
 		# location ONTOP of the wind moving it. 
 		self.H_pos.append(np.copy(self.pos))
 		self.pos += self.vel
-
-		# This means the sim will still move the drone to a location
-		# it THINKS is the setpoints. Also allows us to draw the 'real'
-		# location of the drone versus the place it thinks it is. 
 
 	def model_update(self):
 		# TODO
