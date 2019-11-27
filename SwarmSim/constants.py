@@ -23,3 +23,12 @@ ANGLE_MEAN  = 10.0 # Should be in radians.
 ANGLE_VAR   = 1.0 
 MAG_MEAN    = 5.0
 MAG_VAR     = 2.0
+
+# For testing/development
+TEST_VAR_RADIUS = 2.0
+
+TARGET_EPSILON = 0.1
+
+EXP_OFF       = 0
+EXP_HOVER     = 1
+EXP_EXPANDING = 2

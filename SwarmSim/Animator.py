@@ -11,7 +11,7 @@ class Animator():
 		self.ylim = [0,100]
 		self.zlim = [0,7]
 
-	def plot_drones(self, drones, in_training=True):
+	def plot_drones(self, drones, in_training=True, plot_errors=False):
 		plt.cla()
 		for d in drones:
 			self.plot_drone(d, in_training)
@@ -38,5 +38,7 @@ class Animator():
 			if len(d.H_pos_est) > 0:
 				s_hist = np.vstack(d.H_pos_est)
 				self.ax.plot(s_hist[:,0], s_hist[:,1], s_hist[:,2], 'r:')
+
+
 
 

@@ -13,9 +13,11 @@ class Drone():
 		self.vel = np.zeros((3))
 		self.acc = np.zeros((3))
 		self.pos_estimate = np.zeros((3)) # Estimated via deadreckoning
+		self.exp_vector   = np.zeros((3)) # For the expansion procedure
 
 		# Target Vector - Tracking Next Target Position
-		self.target = np.zeros((3))
+		self.target       = np.zeros((3)) # Actual position target used for setpoints
+		self.saved_target = np.zeros((3)) # Planned target - next waypoint. 'Goal'
 
 		# Controllers
 		self.PID_X = None
@@ -32,6 +34,10 @@ class Drone():
 		# self.others_pos    = [] # last known pos of other drones
 		# self.others_models = [] # model parameters for other drones
 		# self.model = None # The ML model we are using?
+
+	def set_target(self, t):
+		self.target = np.copy(t)
+		self.init_PIDs()
 
 	def init_PIDs(self):
 		# Assuming we call this everytime we update the targets
@@ -101,6 +107,10 @@ class Drone():
 	def model_variance(self):
 		# TODO
 		return 1.0
+
+	def has_reached_target(self, epsilon):
+		# return true if distance to target is within epsilon
+		return abs(np.linalg.norm(self.pos_estimate-self.target)) < epsilon
 
 # Returns a value that is max(abs(max_a), abs(a+b))
 def clamp_add(a, b, max_a):

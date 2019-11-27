@@ -6,6 +6,7 @@ class Wind():
 		self.gusting = False
 		self.gust_length = 0 # How many ticks (state-advances) a gust lasts
 		self.gust_timer  = 0 # How long a gust has been going
+		
 		# Storing these for debugging, but not strictly needed?
 		self.gust_angle  = 0 # Which Direction
 		self.gust_mag    = 0 # How hard
