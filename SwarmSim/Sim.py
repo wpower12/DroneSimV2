@@ -48,16 +48,19 @@ class Sim():
 				if self.expansion_timer > self.pred_horz:
 					self.exp_hover()
 					self.expansion_state = C.EXP_HOVER
+					print("Expansion: drones switch to hover mode")
 			elif self.expansion_state == C.EXP_HOVER:
 				# Check if drones are at targets
 				if self.drones_at_targets():
 					self.exp_expand()
 					self.expansion_state = C.EXP_EXPANDING
+					print("Expansion: drones expanding")
 			elif self.expansion_state == C.EXP_EXPANDING:
 				if self.drones_at_targets():
 					self.exp_correct_targets()
 					self.expansion_state == C.EXP_OFF
 					self.expansion_timer = 0
+					print("Expansion: drones update targets")
 
 		for d in self.drones:
 			d.pos += wind_dev
