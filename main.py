@@ -3,8 +3,9 @@ from SwarmSim.Sim import *
 NUM_TRAINING_STEPS  = 50
 NUM_INFERENCE_STEPS = 400
 PREDICTION_HORZ = 20
-
+# N = 66
 N = 27
+
 sim = Sim(N, shape="cube")
 
 # Simple waypoint method, set drones target

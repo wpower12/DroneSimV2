@@ -1,26 +1,56 @@
 import numpy as np
+import math 
 
 from . import Drone
-from . import Wind
-from . import Animator
+from . import GCRFModel as M
+from . import Wind      as W
+from . import Animator  as A
 from . import constants as C
+
+# Going to need these later. For now, assuming fully connected G so
+# don't need them really. 
+def index_from_spatial(x, y, z, s):
+	return x + y*s + z*(s*s)
+
+def spatial_from_index(n, s):
+	z = math.floor(n / (s*s))
+	y = math.floor((n/s) - z*(s*s))
+	x = n - y*s - z*s*s
+	return [x,y,z]
 
 class Sim():
 	def __init__(self, num_drones, shape="cube"):
 		self.N = num_drones
 		self.drones = []
-		self.wind = Wind.Wind()
-		self.anm = Animator.Animator()
+		self.wind = W.Wind()
+		self.anm = A.Animator()
 		self.training = True
 		self.using_expansion = False # For experiments
 		self.pred_horz = 0
 		self.expansion_timer = 0
 		self.expansion_state = C.EXP_OFF
 
+		# Current Dataset
+		self.data_x = []
+		self.data_y = []
+
+		# Historical - So we can save all the data if we want.	
+		self.hdata_x_windows = [] # Holds the input vectors for each timestep
+		self.hdata_y_nodes   = [] # Holds the output vectors for each timestep
+
+		# GCRF Model.
+		self.model = M.GCRFModel(1)
+		self.S     = None          # Similarity Matrix for GCRF Model
+
 		if shape == "cube":
 			# For now, if cube, assume num_drones has a perfect
 			# cube root. 
 			side_len = int(num_drones ** (1/3))
+			self.s = side_len
+			# Create adjacency and similarity matrices.
+			self.G = np.ones( (side_len**3, side_len**3), dtype=int) # Change this to change network
+			self.S = np.zeros((side_len**3, side_len**3), dtype=int)
+
 			for layer_number in range(side_len):
 				z_loc = C.SEPARATION * layer_number
 				for row in range(side_len):
@@ -32,6 +62,16 @@ class Sim():
 						d.target = d.pos
 						d.init_PIDs()
 						self.drones.append(d)
+			self.update_S()
+			
+	def update_S(self):
+		for i in range(self.s**3):
+			for j in range(self.s**3):
+				if j >= i and self.G[i][j] == 1:
+					# Similarity is their distance
+					d_i = self.drones[i]
+					d_j = self.drones[j]
+					self.S[i][j] = np.linalg.norm(d_i.pos - d_j.pos)
 
 	def tick(self):
 		self.anm.plot_drones(self.drones, self.training, self.using_expansion)
@@ -69,10 +109,13 @@ class Sim():
 			else:
 				d.update_inference()
 
-		# For now, not doing this like this.
-		# Going to just share a list of 'other' drones 
-		if self.training:
-			self.distribute_models()
+		# For 'Sim Situated' model
+		# We check against the length of data_x so we only train once
+		# we have accumulated enough data. 
+		if self.training:  
+			if len(self.data_x) >= C.WINDOW_SIZE:
+				self.model.train(self.S, self.data_x, self.data_y)
+			self.update_data()
 
 	def use_expansion(self, pred_horz):
 		self.using_expansion = True
