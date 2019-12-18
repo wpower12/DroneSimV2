@@ -3,12 +3,12 @@ DT = 0.01
 
 # Drone 
 DRONE_MASS = 1.0
-MAX_VEL = 1.0
-MAX_ACC = 1.0
-MAX_JERK = 1.0 # Max value that can be applied to acc in a dt
+MAX_VEL    = 1.0
+MAX_ACC    = 1.0
+MAX_JERK   = 1.0 # Max value that can be applied to acc in a dt
 
 # Swarm
-SEPARATION = 2.0 # Distance between drones - used in Cube
+SEPARATION = 2.0 # Distance between drones - used in layouts
 
 # Constants for the PID controller
 PID_P = 30.0
@@ -26,7 +26,7 @@ MAG_VAR     = 2.0
 
 # Expansion Procedure Parameters
 TEST_VAR_RADIUS = 2.0
-TARGET_EPSILON = 0.1
+TARGET_EPSILON  = 0.1
 EXP_OFF       = 0
 EXP_HOVER     = 1
 EXP_EXPANDING = 2
