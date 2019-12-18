@@ -4,26 +4,13 @@ import math
 from . import Drone
 from . import GCRFModel as M
 from . import Wind      as W
-from . import Animator  as A
 from . import constants as C
 
-# Going to need these later. For now, assuming fully connected G so
-# don't need them really. 
-def index_from_spatial(x, y, z, s):
-	return x + y*s + z*(s*s)
-
-def spatial_from_index(n, s):
-	z = math.floor(n / (s*s))
-	y = math.floor((n/s) - z*(s*s))
-	x = n - y*s - z*s*s
-	return [x,y,z]
-
-class Sim():
+class Swarm():
 	def __init__(self, num_drones, shape="cube"):
 		self.N = num_drones
 		self.drones = []
 		self.wind = W.Wind()
-		self.anm  = A.Animator()
 		self.training = True
 		self.using_expansion = False # For experiments
 		self.pred_horz = 0
@@ -63,12 +50,27 @@ class Sim():
 						d.init_PIDs()
 						self.drones.append(d)
 			
-			self.update_S()
+		if shape == "planar":
+			side_len = int(num_drones**(1/2))
+			self.s = side_len
+			self.G = np.ones( (side_len**2, side_len**2), dtype=int) # Change this to change network
+			self.S = np.zeros((side_len**2, side_len**2), dtype=int)
+
+			z_loc = 0
+			for row in range(side_len):
+				x_loc = C.SEPARATION * row
+				for col in range(side_len):
+					y_loc = C.SEPARATION * col
+					d = Drone.Drone()
+					d.pos = np.asarray([x_loc, y_loc, z_loc])
+					d.target = d.pos
+					d.init_PIDs()
+					self.drones.append(d)
+
+		self.update_S()
 
 	#### "Public" Methods #########
 	def tick(self):
-		self.anm.plot_drones(self.drones, self.training, self.using_expansion)
-
 		# All drones see the same 'wind' 
 		wind_dev = self.wind.sample_wind() * C.DT
 
@@ -110,7 +112,18 @@ class Sim():
 		delta = np.asarray(dpos)
 		for d in self.drones:
 			d.target = d.pos + delta
-			d.init_PIDs() 
+			# d.init_PIDs() 
+	
+	def set_swarm_pos_relative(self, dpos):
+		delta = np.asarray(dpos)
+		for d in self.drones:
+			d.pos = d.pos + delta
+
+	# Should be called when we change the target.
+	def init_drone_PIDs(self):
+		for d in self.drones:
+			d.init_PIDs()
+
 	######################
 
 	#### Expansion Methods ########
@@ -155,8 +168,9 @@ class Sim():
 
 	#### Model Methods ###########
 	def update_S(self):
-		for i in range(self.s**3):
-			for j in range(self.s**3):
+		I, J = np.shape(self.S)
+		for i in range(I):
+			for j in range(J):
 				if j >= i and self.G[i][j] == 1:
 					# Similarity is their distance
 					d_i = self.drones[i]
@@ -185,6 +199,16 @@ class Sim():
 			self.hdata_y.append(np.copy(self.data_y))
 
 	######################
-
 	def dump_state(self):
 		print(np.shape(self.data_x), np.shape(self.hdata_x))
+
+# Going to need these later. For now, assuming fully connected G so
+# don't need them really. 
+def index_from_spatial(x, y, z, s):
+	return x + y*s + z*(s*s)
+
+def spatial_from_index(n, s):
+	z = math.floor(n / (s*s))
+	y = math.floor((n/s) - z*(s*s))
+	x = n - y*s - z*s*s
+	return [x,y,z]
