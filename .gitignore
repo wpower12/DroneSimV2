@@ -1,0 +1,5 @@
+*.mkv
+*.pyc
+*/__pycache__/*
+
+
