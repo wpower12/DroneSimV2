@@ -23,7 +23,7 @@ class Sim():
 		self.N = num_drones
 		self.drones = []
 		self.wind = W.Wind()
-		self.anm = A.Animator()
+		self.anm  = A.Animator()
 		self.training = True
 		self.using_expansion = False # For experiments
 		self.pred_horz = 0
@@ -31,15 +31,15 @@ class Sim():
 		self.expansion_state = C.EXP_OFF
 
 		# Current Dataset
-		self.data_x = []
+		self.data_x = [] 
 		self.data_y = []
 
-		# Historical - So we can save all the data if we want.	
-		self.hdata_x_windows = [] # Holds the input vectors for each timestep
-		self.hdata_y_nodes   = [] # Holds the output vectors for each timestep
+		# Historical Data	
+		self.hdata_x = []
+		self.hdata_y = [] 
 
 		# GCRF Model.
-		self.model = M.GCRFModel(1)
+		self.model = M.GCRFModel()
 		self.S     = None          # Similarity Matrix for GCRF Model
 
 		if shape == "cube":
@@ -62,17 +62,10 @@ class Sim():
 						d.target = d.pos
 						d.init_PIDs()
 						self.drones.append(d)
-			self.update_S()
 			
-	def update_S(self):
-		for i in range(self.s**3):
-			for j in range(self.s**3):
-				if j >= i and self.G[i][j] == 1:
-					# Similarity is their distance
-					d_i = self.drones[i]
-					d_j = self.drones[j]
-					self.S[i][j] = np.linalg.norm(d_i.pos - d_j.pos)
+			self.update_S()
 
+	#### "Public" Methods #########
 	def tick(self):
 		self.anm.plot_drones(self.drones, self.training, self.using_expansion)
 
@@ -80,8 +73,6 @@ class Sim():
 		wind_dev = self.wind.sample_wind() * C.DT
 
 		# 'State Machine' for expansion procedure
-		# runs when the expansion flag is set, and when 
-		# in inference mode. 
 		if self.using_expansion and not self.training:	
 			if self.expansion_state == C.EXP_OFF:
 				self.expansion_timer += 1
@@ -109,14 +100,20 @@ class Sim():
 			else:
 				d.update_inference()
 
-		# For 'Sim Situated' model
-		# We check against the length of data_x so we only train once
-		# we have accumulated enough data. 
+		# Data Gathering
 		if self.training:  
+			self.update_data(wind_dev)
 			if len(self.data_x) >= C.WINDOW_SIZE:
 				self.model.train(self.S, self.data_x, self.data_y)
-			self.update_data()
 
+	def set_swarm_target_relative(self, dpos):
+		delta = np.asarray(dpos)
+		for d in self.drones:
+			d.target = d.pos + delta
+			d.init_PIDs() 
+	######################
+
+	#### Expansion Methods ########
 	def use_expansion(self, pred_horz):
 		self.using_expansion = True
 		self.pred_horz = pred_horz
@@ -154,26 +151,40 @@ class Sim():
 		for d in self.drones:
 			have_reached = have_reached and d.has_reached_target(C.TARGET_EPSILON)
 		return have_reached
+	#######################
 
-	def distribute_models(self):
-		# Share the models between all drones. 2 Passes?
-		# Collect all models
-		models = []
-		for d in self.drones:
-			# TODO - How do we encode them? Just copy a reference?
-			pass
+	#### Model Methods ###########
+	def update_S(self):
+		for i in range(self.s**3):
+			for j in range(self.s**3):
+				if j >= i and self.G[i][j] == 1:
+					# Similarity is their distance
+					d_i = self.drones[i]
+					d_j = self.drones[j]
+					self.S[i][j] = np.linalg.norm(d_i.pos - d_j.pos)
 
-		# Share all models
-		for d in self.drones:
-			# d.models = models # Is it that simple?
-			pass
+	def update_G(self):
+		# In the future, we will have some threshold distance that
+		# defines when drones are neighbors, and can therefore 'share'
+		# info, or be considered connected. 
+		pass
 
-	def set_swarm_target_relative(self, dpos):
-		delta = np.asarray(dpos)
+	def update_data(self, wind_val):
+		new_data = []
 		for d in self.drones:
-			d.target = d.pos + delta
-			d.init_PIDs() 
+			new_data.append(d.pos)
+
+		if len(self.data_y) > 0:
+			self.data_x.append(self.data_y)
+		self.data_y = np.array(new_data)
+
+		# Update current data window
+		if len(self.data_x) > C.WINDOW_SIZE:
+			self.data_x = self.data_x[1:] # Get rid of first item
+			self.hdata_x.append(np.copy(self.data_x))
+			self.hdata_y.append(np.copy(self.data_y))
+
+	######################
 
 	def dump_state(self):
-		for d in self.drones:
-			print(d.pos)
+		print(np.shape(self.data_x), np.shape(self.hdata_x))
