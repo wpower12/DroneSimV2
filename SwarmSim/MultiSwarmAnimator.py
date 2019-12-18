@@ -10,18 +10,19 @@ class MultiSwarmAnimator():
 		self.xlim = [0,100]
 		self.ylim = [0,100]
 		self.zlim = [0,7]
+		self.color_str = ""
 
-
-	def plot_swarms(self,swarms, in_training=True, plot_errors=False):
+	def plot_swarms(self, swarms, in_training=True, plot_errors=False):
 		plt.cla()
 		for s in swarms:
+			self.color_str = s.color + "."
 			for d in s.drones:
 				self.plot_drone(d, in_training)
 		plt.pause(0.001)
 
 	def plot_drone(self, d, in_training=True):
 		x, y, z = d.pos
-		self.ax.plot([x], [y], [z], 'k.')
+		self.ax.plot([x], [y], [z], self.color_str)
 
 		if len(d.H_pos) > 0:
 			s_hist = np.vstack(d.H_pos)

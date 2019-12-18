@@ -16,6 +16,7 @@ class Swarm():
 		self.pred_horz = 0
 		self.expansion_timer = 0
 		self.expansion_state = C.EXP_OFF
+		self.color = "k" # Black
 
 		# Current Dataset
 		self.data_x = [] 

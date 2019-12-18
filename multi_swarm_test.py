@@ -4,8 +4,8 @@ NUM_TRAINING_STEPS  = 100
 NUM_INFERENCE_STEPS = 400
 PREDICTION_HORZ = 20
 
-swarms = [[9, "planar", [0,0,0], [20,20,20]],
-          [27, "cube",  [20,20,20], [-20,-20,-20]]]
+swarms = [[9, "planar", "b", [0,0,0],    [20,20,20]],
+          [27, "cube",  "r", [20,20,20], [-20,-20,-20]]]
 
 m_sim = MultiSwarmSim(swarms)
 

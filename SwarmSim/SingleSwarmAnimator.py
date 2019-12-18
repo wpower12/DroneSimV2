@@ -10,10 +10,12 @@ class SingleSwarmAnimator():
 		self.xlim = [0,100]
 		self.ylim = [0,100]
 		self.zlim = [0,7]
+		self.color_str = ""
 
-	def plot_drones(self, drones, in_training=True, plot_errors=False):
+	def plot_drones(self, sim, in_training=True, plot_errors=False):
 		plt.cla()
-		for d in drones:
+		self.color_str = sim.color + "."
+		for d in sim.drones:
 			self.plot_drone(d, in_training)
 
 		# Hardcoding for now, should fix later.
@@ -26,7 +28,8 @@ class SingleSwarmAnimator():
 
 	def plot_drone(self, d, in_training=True):
 		x, y, z = d.pos
-		self.ax.plot([x], [y], [z], 'k.')
+
+		self.ax.plot([x], [y], [z], self.color_str)
 
 		if len(d.H_pos) > 0:
 			s_hist = np.vstack(d.H_pos)

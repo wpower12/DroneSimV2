@@ -7,8 +7,9 @@ class MultiSwarmSim():
 			# [[num_drones, type, inital_position, target],[...], [...]]
 		self.swarms = []
 		for s in swarms:
-			num_drones, swarm_type, pos, target = s
+			num_drones, swarm_type, color, pos, target = s
 			new_sim = S.Swarm(num_drones, swarm_type)
+			new_sim.color = color
 			new_sim.set_swarm_pos_relative(pos)
 			new_sim.set_swarm_target_relative(target)
 			new_sim.init_drone_PIDs()
