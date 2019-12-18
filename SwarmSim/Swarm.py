@@ -3,14 +3,12 @@ import math
 
 from . import Drone
 from . import GCRFModel as M
-from . import Wind      as W
 from . import constants as C
 
 class Swarm():
 	def __init__(self, num_drones, shape="cube"):
 		self.N = num_drones
 		self.drones = []
-		self.wind = W.Wind()
 		self.training = True
 		self.using_expansion = False # For experiments
 		self.pred_horz = 0
@@ -71,9 +69,9 @@ class Swarm():
 		self.update_S()
 
 	#### "Public" Methods #########
-	def tick(self):
+	def tick(self, wind):
 		# All drones see the same 'wind' 
-		wind_dev = self.wind.sample_wind() * C.DT
+		wind_dev = wind.sample_wind() * C.DT
 
 		# 'State Machine' for expansion procedure
 		if self.using_expansion and not self.training:	

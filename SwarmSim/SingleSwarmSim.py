@@ -1,4 +1,5 @@
 from . import Swarm as S
+from . import Wind  as W
 from . import SingleSwarmAnimator as A
 
 class SingleSwarmSim():
@@ -9,7 +10,7 @@ class SingleSwarmSim():
 		self.sim.set_swarm_pos_relative(pos)
 		self.sim.set_swarm_target_relative(target)
 		self.sim.init_drone_PIDs()
-
+		self.wind = W.Wind()
 		self.anm = A.SingleSwarmAnimator()
 		self.in_training = True
 		self.plot_errors = False
@@ -20,4 +21,4 @@ class SingleSwarmSim():
 							self.plot_errors)
 
 	def tick(self):
-		self.sim.tick()
+		self.sim.tick(self.wind)
