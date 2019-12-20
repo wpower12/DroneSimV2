@@ -17,7 +17,7 @@ class MultiSwarmAnimator():
 		for s in swarms:
 			self.color_str = s.color + "."
 			for d in s.drones:
-				self.plot_drone(d, in_training)
+				self.plot_drone(d, s.training)
 		plt.pause(0.001)
 
 	def plot_drone(self, d, in_training=True):

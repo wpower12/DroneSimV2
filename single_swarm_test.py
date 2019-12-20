@@ -1,6 +1,6 @@
 from SwarmSim.SingleSwarmSim import *
 
-NUM_TRAINING_STEPS  = 100
+NUM_TRAINING_STEPS  = 20
 NUM_INFERENCE_STEPS = 400
 PREDICTION_HORZ = 20
 
@@ -12,8 +12,8 @@ for t in range(NUM_TRAINING_STEPS):
 	sim.animate()
 	sim.tick()
 
-# sim.in_training = False
-# sim.use_expansion(PREDICTION_HORZ) 
+sim.start_inference(PREDICTION_HORZ)
 
-# for t in range(NUM_INFERENCE_STEPS):
-# 	sim.tick()
+for t in range(NUM_INFERENCE_STEPS):
+	sim.animate()
+	sim.tick()

@@ -17,8 +17,12 @@ class SingleSwarmSim():
 		
 	def animate(self):
 		self.anm.plot_drones(self.sim, 
-							self.in_training, 
+							self.sim.training, 
 							self.plot_errors)
 
 	def tick(self):
 		self.sim.tick(self.wind)
+
+	def start_inference(self, ph):
+		self.sim.training = False
+		self.sim.use_expansion(ph)
