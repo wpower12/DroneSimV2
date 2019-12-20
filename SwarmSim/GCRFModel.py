@@ -44,6 +44,8 @@ class GCRFModel():
 		# Now we need to pass the R, L, and Y values to an optimizer
 		# that will find the set of A, b that yields the minimum theta.
 
+	def predict(self):
+		return np.zeros((3))
 
 def GCRF_obj(theta, L, R, Y):
 	# theta - [a0, a1, ... an, beta]

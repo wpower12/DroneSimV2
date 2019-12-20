@@ -99,7 +99,7 @@ class Swarm():
 			if self.training:
 				d.update_training()
 			else:
-				d.update_inference()
+				d.update_inference(self.model)
 
 		# Data Gathering
 		if self.training:  
