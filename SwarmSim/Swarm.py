@@ -25,7 +25,7 @@ class Swarm():
 		self.hdata_y = [] 
 
 		# GCRF Model.
-		self.model = M.GCRFModel()
+		self.model = M.GCRFModel(3)
 		self.S     = None          # Similarity Matrix for GCRF Model
 
 		if shape == "cube":
@@ -100,8 +100,8 @@ class Swarm():
 				d.update_training()
 			else:
 				d.update_inference(self.model)
-
-		# Data Gathering
+		
+		# Data Gathering/Model Training
 		if self.training:  
 			self.update_data(wind_dev)
 			if len(self.data_x) >= C.WINDOW_SIZE:
