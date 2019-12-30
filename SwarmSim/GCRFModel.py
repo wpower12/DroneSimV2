@@ -51,9 +51,6 @@ class GCRFModel():
 		for wl in self.regs:
 			wl.fit(X, Y)
 			R_train.append(wl.predict(X))
-
-		# Should return a (N, K, T) tensor
-		# Currently a (K, N, T, F) tensor
 		return np.array(R_train)
 
 	def predict(self):
@@ -87,10 +84,13 @@ def flatten_shape(X):
 	return flat
 
 def tensorize_R(R_flat, dim):
+	# R_flat    is shape (K, N*T, D)
+	# Want R to be shape (N, K, T, D)?
+	print(np.shape(R_flat))
 	[N, K, T, D] = dim
 	R = np.zeros((N, K, T, D), dtype=float)
 	for t in range(0,T):
-		R[:,:,t,:] = R_flat[:, t*N:t*N+N, :]
+		R[:,t,] = R_flat[:,t*N:t*N+N]
 	return R
 
 def threshold(S):

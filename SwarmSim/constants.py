@@ -32,5 +32,5 @@ EXP_HOVER     = 1
 EXP_EXPANDING = 2
 
 # Model Parameters
-NUM_REGRESSORS = 3
+NUM_REGRESSORS = 2
 WINDOW_SIZE = 5 # How large each 'temporal window' is
