@@ -17,6 +17,7 @@ class Swarm():
 		self.color = "k" # Black
 
 		# Current Dataset
+		self.data_window = []
 		self.data_x = [] 
 		self.data_y = []
 
@@ -25,7 +26,7 @@ class Swarm():
 		self.hdata_y = [] 
 
 		# GCRF Model.
-		self.model = M.GCRFModel(3)
+		self.model = M.GCRFModel(C.NUM_REGRESSORS, C.WINDOW_SIZE)
 		self.S     = None          # Similarity Matrix for GCRF Model
 
 		if shape == "cube":
@@ -106,7 +107,7 @@ class Swarm():
 			self.update_data(wind_dev)
 			if len(self.data_x) >= C.WINDOW_SIZE:
 				self.model.train(self.S, self.data_x, self.data_y)
-
+				
 	def set_swarm_target_relative(self, dpos):
 		delta = np.asarray(dpos)
 		for d in self.drones:
@@ -187,13 +188,15 @@ class Swarm():
 		for d in self.drones:
 			new_data.append(d.pos)
 
-		if len(self.data_y) > 0:
-			self.data_x.append(self.data_y)
-		self.data_y = np.array(new_data)
+		self.data_window.append(new_data)
+		if len(self.data_window) > C.WINDOW_SIZE+1:
+			self.data_window = self.data_window[1:]
+			# self.data_window should now be len W+1
+			self.data_x = self.data_window[:C.WINDOW_SIZE]
+			self.data_y = self.data_window[1:]
 
-		# Update current data window
-		if len(self.data_x) > C.WINDOW_SIZE:
-			self.data_x = self.data_x[1:] # Get rid of first item
+		# Update historical data lists
+		if len(self.data_x) == C.WINDOW_SIZE:
 			self.hdata_x.append(np.copy(self.data_x))
 			self.hdata_y.append(np.copy(self.data_y))
 

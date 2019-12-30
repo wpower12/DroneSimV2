@@ -9,37 +9,44 @@ from sklearn.multioutput  import MultiOutputRegressor
 from scipy.optimize import minimize
 
 class GCRFModel():
-	def __init__(self, K):
+	def __init__(self, K, T):
 		self.K = K
+		self.T = T
+
 		### Weak Learners ###
 		self.regs = []
 		for i in range(K):
-			self.regs.append(MultiOutputRegressor(LinearRegression))
-			# self.regs.append(LinearRegression())
+			# self.regs.append(MultiOutputRegressor(LinearRegression))
+			self.regs.append(LinearRegression())
 
 		alpha = np.ones((self.K,))
 		beta  = 0
 		self.theta = np.array([alpha, beta])
 
 	def train(self, S, X, Y):
-		print(np.shape(X), np.shape(Y))
-		R = self.fit_weak_learners(Y, X)
+		X = flatten_shape(np.array(X))
+		Y = flatten_shape(np.array(Y))
 
-		(N,K,_) = R.shape
+		(N, _) = np.shape(S)
 		S = (S/sum(sum(S))) * N
 		L = np.diag(sum(S)) - S
 		
+		R = self.fit_weak_learners(X, Y)
+		(_,_,D) = np.shape(R)
+		R = tensorize_R(R, (N, self.K, self.T, D))
+
 		cons = ({'type': 'ineq', 'fun' : lambda theta: sum(theta[0:K])},
 				{'type': 'ineq', 'fun' : lambda theta: theta[K]})
 
-		# Keep 'updating' theta? 
 		theta = self.theta
+
+		print(np.shape(L), np.shape(R), np.shape(Y))
 		res = minimize(GCRF_objective, theta, args=(L,R,Y), #jac=GCRF_objective_deriv,
 				  	   constraints=cons, method='SLSQP', options={'maxiter': 1000, 'disp': False})
 		theta = res.x
 		return theta
 
-	def fit_weak_learners(self, Y, X):
+	def fit_weak_learners(self, X, Y):
 		R_train = []
 		for wl in self.regs:
 			wl.fit(X, Y)
@@ -72,8 +79,27 @@ def GCRF_objective( theta, L, R, Y ):
 	
 	return neg_ll
 
-# TODO
+def flatten_shape(X):
+	[T, N, d] = np.shape(X)
+	flat = np.zeros((T*N, d), dtype=float)
+	for t in range(0,T):
+		flat[t*N:t*N+N, :] = X[t, :, :]
+	return flat
+
+def tensorize_R(R_flat, dim):
+	[N, K, T, D] = dim
+	R = np.zeros((N, K, T, D), dtype=float)
+	for t in range(0,T):
+		R[:,:,t,:] = R_flat[:, t*N:t*N+N, :]
+	return R
+
 def threshold(S):
-	return S
+	(N, _) = np.shape(S)
+	S_thresh = np.zeros((N, N))
+	for i in range(N):
+		for j in range(N):
+			if S[i][j] < (C.SEPARATION - 0.1):
+				S_thresh[i][j] = 1
+	return S_thresh
 
 
