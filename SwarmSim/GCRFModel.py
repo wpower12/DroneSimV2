@@ -20,8 +20,8 @@ class GCRFModel():
 			self.regs.append(LinearRegression())
 
 		alpha = np.ones((self.K,))
-		beta  = 0
-		self.theta = np.array([alpha, beta])
+		beta  = np.zeros((1,))
+		self.theta = np.append(alpha, beta)
 
 	def train(self, S, X, Y):
 		X      = flatten_shape(np.array(X))
@@ -36,12 +36,12 @@ class GCRFModel():
 		(_,_,D) = np.shape(R)
 		R = tensorize_R(R, (N, D, self.K, self.T))
 
-		cons = ({'type': 'ineq', 'fun' : lambda theta: sum(theta[0:K])},
-				{'type': 'ineq', 'fun' : lambda theta: theta[K]})
-
 		theta = self.theta
 
-		print(np.shape(L), np.shape(R), np.shape(Y))
+		cons = ({'type': 'ineq', 'fun' : lambda theta: sum(theta[0:self.K])},
+				{'type': 'ineq', 'fun' : lambda theta: theta[self.K]})
+
+		# print(np.shape(L), np.shape(R), np.shape(Y))
 		res = minimize(GCRF_objective, theta, args=(L,R,Y), #jac=GCRF_objective_deriv,
 				  	   constraints=cons, method='SLSQP', options={'maxiter': 1000, 'disp': False})
 		theta = res.x
@@ -57,11 +57,11 @@ class GCRFModel():
 	def predict(self):
 		return np.zeros((3))
 
-def GCRF_objective( theta, L, R, Y ):
-	(N,D,K,T) = R.shape
+def GCRF_objective(theta, L, R, Y):
+	(N,d_out,K,T) = R.shape
 	alpha = theta[0:K]
 	beta = theta[K]
-	epsilon = 1e-6
+	epsilon = 1e-8
 	
 	gamma = sum(alpha)
 	Q = beta*L + gamma*np.eye(N)
@@ -69,11 +69,11 @@ def GCRF_objective( theta, L, R, Y ):
 	
 	neg_ll = 0
 	for t in range(0,T):
-		b = np.dot(R[:,:,t],alpha.T)
-		mu = np.linalg.solve(Q,b)
-		e = Y[:,t] - mu
-		neg_ll = neg_ll - np.dot(np.dot(e.T, Q), e) - 0.5*np.log(np.linalg.det(Q_inv) + epsilon)
-	
+		for j in range(0,d_out):
+			b = np.dot(R[:,j,:,t],alpha.T)
+			mu = np.linalg.solve(Q,b)
+			e = Y[:,j,t] - mu
+			neg_ll = neg_ll - np.dot(np.dot(e.T, Q), e) - 0.5*np.log(np.linalg.det(Q_inv) + epsilon)
 	neg_ll = -neg_ll
 	
 	return neg_ll

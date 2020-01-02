@@ -68,6 +68,7 @@ class Swarm():
 					self.drones.append(d)
 
 		self.update_S()
+		self.threshold_S()
 
 	#### "Public" Methods #########
 	def tick(self, wind):
@@ -107,6 +108,7 @@ class Swarm():
 			self.update_data(wind_dev)
 			if len(self.data_x) >= C.WINDOW_SIZE:
 				self.model.train(self.S, self.data_x, self.data_y)
+				# pass
 				
 	def set_swarm_target_relative(self, dpos):
 		delta = np.asarray(dpos)
@@ -176,6 +178,17 @@ class Swarm():
 					d_i = self.drones[i]
 					d_j = self.drones[j]
 					self.S[i][j] = np.linalg.norm(d_i.pos - d_j.pos)
+
+	def threshold_S(self):
+		I, J = np.shape(self.S)
+		for i in range(I):
+			for j in range(J):
+				if self.S[i][j] <= C.SEPARATION:
+					self.S[i][j] = 1.0
+				else:
+					self.S[i][j] = 0.0
+					
+
 
 	def update_G(self):
 		# In the future, we will have some threshold distance that
