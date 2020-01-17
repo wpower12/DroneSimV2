@@ -1,0 +1,4 @@
+run 0, seed 3248668, error 10
+run 1, seed 2147325, error 10
+total error: 20
+ave error: 2.2222222222222223

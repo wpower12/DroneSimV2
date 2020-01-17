@@ -187,8 +187,6 @@ class Swarm():
 					self.S[i][j] = 1.0
 				else:
 					self.S[i][j] = 0.0
-					
-
 
 	def update_G(self):
 		# In the future, we will have some threshold distance that
@@ -216,6 +214,10 @@ class Swarm():
 	######################
 	def dump_state(self):
 		print(np.shape(self.data_x), np.shape(self.hdata_x))
+
+	def dump_locations(self):
+		return [d.pos for d in self.drones]
+
 
 # Going to need these later. For now, assuming fully connected G so
 # don't need them really. 

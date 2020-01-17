@@ -14,6 +14,9 @@ class Wind():
 		# The above 2 will resolve into a single 3 vector
 		self.gust_vect = None
 
+	def set_seed(self, n):
+		np.random.seed = n
+
 	def sample_wind(self):
 		self.advance_state()
 		if self.gusting:
