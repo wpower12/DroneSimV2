@@ -2,12 +2,15 @@ from SwarmSim.SingleSwarmSim import *
 from SwarmSim.ExpHelper      import *
 import random
 
+import warnings
+warnings.filterwarnings("ignore")
+
 LOG_DIR = "exp_run_results/" 
 LOG_FN  = "test_01.txt"
 log_f   = open(LOG_DIR+LOG_FN, 'w')
 log_f.write("run, seed, model error, dr error, diff\n")
 
-NUM_RUNS   = 2
+NUM_RUNS   = 10
 NUM_TRAINING_STEPS  = 10
 NUM_INFERENCE_STEPS = 10
 
@@ -22,8 +25,12 @@ error_total   = 0
 
 
 for n in range(NUM_RUNS):
+	print('run:', n)
+	
 	# rnd_seed = 0 # when set to 0 we don't get the LINALG exception
 	rnd_seed = random.randint(-10000000, 10000000)
+	# rnd_seed = n
+	print('rnd_seed:', rnd_seed)
 
 	# baseline
 	sim = SingleSwarmSim(swarm_options, ANIMATE)
@@ -65,3 +72,4 @@ log_f.write("total error: {}\n".format(error_total))
 log_f.write("ave error: {}".format(error_total/SWARM_SIZE))
 
 log_f.close()
+print('Done!')

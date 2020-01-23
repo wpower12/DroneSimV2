@@ -78,10 +78,10 @@ class Drone():
 
 		self.model_update()
 
-	def update_inference(self, model, use_model=True):
+	def update_inference(self, model, use_model, X, S, d_index):
 		if use_model:
 			# Apply output of model to predict deviation from Wind
-			self.pos_estimate += model.predict() # I think? more on this later.
+			self.pos_estimate += model.predict(X, S, d_index) # I think? more on this later.
 
 		# In inference, we use the ESTIMATE of pos to update
 		self.update_state_from_pos(self.pos_estimate)

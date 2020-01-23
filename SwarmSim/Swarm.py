@@ -37,7 +37,7 @@ class Swarm():
 			self.s = side_len
 			# Create adjacency and similarity matrices.
 			self.G = np.ones( (side_len**3, side_len**3), dtype=int) # Change this to change network
-			self.S = np.zeros((side_len**3, side_len**3), dtype=int)
+			self.S = np.zeros((side_len**3, side_len**3), dtype=float)
 
 			for layer_number in range(side_len):
 				z_loc = C.SEPARATION * layer_number
@@ -55,7 +55,7 @@ class Swarm():
 			side_len = int(num_drones**(1/2))
 			self.s = side_len
 			self.G = np.ones( (side_len**2, side_len**2), dtype=int) # Change this to change network
-			self.S = np.zeros((side_len**2, side_len**2), dtype=int)
+			self.S = np.zeros((side_len**2, side_len**2), dtype=float)
 
 			z_loc = 0
 			for row in range(side_len):
@@ -69,7 +69,7 @@ class Swarm():
 					self.drones.append(d)
 
 		self.update_S()
-		self.threshold_S()
+		#self.threshold_S()
 
 	#### "Public" Methods #########
 	def tick(self, wind):
@@ -97,12 +97,12 @@ class Swarm():
 					self.expansion_timer = 0
 					print("Expansion: drones update targets")
 
-		for d in self.drones:
+		for index, d in enumerate(self.drones):
 			d.pos += wind_dev
 			if self.training:
 				d.update_training()
 			else:
-				d.update_inference(self.model, self.use_model)
+				d.update_inference(self.model, self.use_model, self.data_x, self.S, index)
 		
 		# Data Gathering/Model Training
 		if self.training:  
@@ -174,11 +174,20 @@ class Swarm():
 		I, J = np.shape(self.S)
 		for i in range(I):
 			for j in range(J):
-				if j >= i and self.G[i][j] == 1:
+				if j > i and self.G[i][j] == 1:
 					# Similarity is their distance
 					d_i = self.drones[i]
 					d_j = self.drones[j]
 					self.S[i][j] = np.linalg.norm(d_i.pos - d_j.pos)
+					self.S[j][i] = self.S[i][j]
+					
+		# Threshold S
+		self.S = self.S / np.max(self.S)
+		self.S = 1.0 - self.S
+		for i in range(I):
+			for j in range(J):
+				if self.S[i][j] <= 0.5:
+					self.S[i][j] = 0.0
 
 	def threshold_S(self):
 		I, J = np.shape(self.S)

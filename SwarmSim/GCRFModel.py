@@ -16,14 +16,11 @@ class GCRFModel():
 		### Weak Learners ###
 		self.regs = []
 		for i in range(K):
-			# self.regs.append(MultiOutputRegressor(LinearRegression))
-			self.regs.append(LinearRegression())
-
-		alpha = np.ones((self.K,))
-		beta  = np.zeros((1,))
-		self.theta = np.append(alpha, beta)
+			self.regs.append(MultiOutputRegressor(LinearRegression()))
+			#self.regs.append(LinearRegression())
 
 	def train(self, S, X, Y):
+		
 		X      = flatten_shape(np.array(X))
 		Y_flat = flatten_shape(np.array(Y))
 		Y      = tensorize_Y(np.array(Y))
@@ -35,17 +32,19 @@ class GCRFModel():
 		R = self.fit_weak_learners(X, Y_flat)
 		(_,_,D) = np.shape(R)
 		R = tensorize_R(R, (N, D, self.K, self.T))
+		
+		alpha = np.ones((self.K,))
+		beta  = np.zeros((1,))
+		params = np.append(alpha, beta)
 
-		theta = self.theta
-
-		cons = ({'type': 'ineq', 'fun' : lambda theta: sum(theta[0:self.K])},
-				{'type': 'ineq', 'fun' : lambda theta: theta[self.K]})
+		cons = ({'type': 'ineq', 'fun' : lambda params: sum(params[0:self.K])},
+				{'type': 'ineq', 'fun' : lambda params: params[self.K]})
 
 		# print(np.shape(L), np.shape(R), np.shape(Y))
-		res = minimize(GCRF_objective, theta, args=(L,R,Y), #jac=GCRF_objective_deriv,
+		res = minimize(GCRF_objective, params, args=(L,R,Y), #jac=GCRF_objective_deriv,
 				  	   constraints=cons, method='SLSQP', options={'maxiter': 1000, 'disp': False})
-		theta = res.x
-		return theta
+		
+		self.theta = res.x
 
 	def fit_weak_learners(self, X, Y):
 		R_train = []
@@ -54,24 +53,60 @@ class GCRFModel():
 			R_train.append(wl.predict(X))
 		return np.array(R_train)
 
-	def predict(self):
-		return np.zeros((3))
+	def predict(self, X, S, d_index):
+		#return np.zeros((3))
+		
+		# predict(self, X, S):
+		
+		# if we are predicting the drones' positions at t,
+		# then X should contain the (t-1-w : t - 1) windows for all drones
+		
+		# Call the predict() method for the weak learners to calculate R
+		# ...
+		
+		X = np.array(X)[-1, :, :]
+		
+		#R = self.regs[0].predict(X)
+		#for k in range(1, len(self.regs)):
+		#	R = np.concatenate((R, self.regs[k].predict(X)), axis=0)
+		
+		R = np.zeros((X.shape[0], X.shape[1], self.K), dtype=float)
+		for k in range(0, self.K):
+			R[:,:,k] = self.regs[k].predict(X)
+		
+		
+		(N,d_out,K) = R.shape
+		S = (S/sum(sum(S))) * N
+		L = np.diag(sum(S)) - S
 
-def GCRF_objective(theta, L, R, Y):
+		alpha = self.theta[0:K]
+		gamma = sum(alpha)
+		beta = self.theta[K]
+
+		Q = beta*L + gamma*np.eye(N)
+		mu = np.linalg.solve(Q,np.dot(R,alpha))
+		
+		return mu[d_index]
+		#return R[d_index, :, 0]
+		#return R[d_index, :, 1]
+
+def GCRF_objective(params, L, R, Y):
 	(N,d_out,K,T) = R.shape
-	alpha = theta[0:K]
-	beta = theta[K]
-	epsilon = 1e-8
+	alpha = params[0:K]
+	beta = params[K]
+	epsilon = 0.0#1e-8
 	
 	gamma = sum(alpha)
 	Q = beta*L + gamma*np.eye(N)
-	Q_inv = np.linalg.inv(Q)
+	#Q_inv = np.linalg.inv(Q)
+	Q_inv = np.linalg.pinv(Q) # Optional
 	
 	neg_ll = 0
 	for t in range(0,T):
 		for j in range(0,d_out):
 			b = np.dot(R[:,j,:,t],alpha.T)
-			mu = np.linalg.solve(Q,b)
+			#mu = np.linalg.solve(Q,b)
+			mu = np.dot(Q_inv, b)
 			e = Y[:,j,t] - mu
 			neg_ll = neg_ll - np.dot(np.dot(e.T, Q), e) - 0.5*np.log(np.linalg.det(Q_inv) + epsilon)
 	neg_ll = -neg_ll
