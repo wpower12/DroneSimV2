@@ -16,7 +16,7 @@ PID_I = 0.05
 PID_D = 125.0
 
 # Parameters for Wind Distribution
-START_P     = 0.0075
+START_P     = 0.05
 LENGTH_MEAN = 50
 LENGTH_VAR  = 10
 ANGLE_MEAN  = 10.0 # Should be in radians.

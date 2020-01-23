@@ -1,16 +1,15 @@
 from SwarmSim.SingleSwarmSim import *
 from SwarmSim.ExpHelper      import *
-
 import random
 
 LOG_DIR = "exp_run_results/" 
 LOG_FN  = "test_01.txt"
 log_f   = open(LOG_DIR+LOG_FN, 'w')
+log_f.write("run, seed, model error, dr error, diff\n")
 
 NUM_RUNS   = 2
 NUM_TRAINING_STEPS  = 10
 NUM_INFERENCE_STEPS = 10
-PREDICTION_HORZ     = 20
 
 SWARM_SIZE = 9
 SWARM_TYPE = "planar"
@@ -21,7 +20,6 @@ ANIMATE    = False
 swarm_options = [SWARM_SIZE, SWARM_TYPE, "b", START, END]
 error_total   = 0
 
-log_f.write("run, seed, model error, dr error, diff\n")
 
 for n in range(NUM_RUNS):
 	# rnd_seed = 0 # when set to 0 we don't get the LINALG exception
@@ -52,6 +50,7 @@ for n in range(NUM_RUNS):
 	for i in range(NUM_TRAINING_STEPS):
 		sim.tick()
 	# starting inference with FALSE means we DONT use the model
+	# only dead reckoning
 	sim.start_inference(False)
 	for i in range(NUM_INFERENCE_STEPS):
 		sim.tick()
