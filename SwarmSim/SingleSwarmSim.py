@@ -30,8 +30,11 @@ class SingleSwarmSim():
 			self.animate()
 		self.sim.tick(self.wind)
 
-	def start_inference(self, ph):
+	def start_inference(self, use_model=True):
 		self.sim.training = False
+		self.sim.use_model = use_model
+
+	def use_expansion(self, ph):
 		self.sim.use_expansion(ph)
 
 	def dump_drone_locations(self):

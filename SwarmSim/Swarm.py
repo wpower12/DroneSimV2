@@ -9,7 +9,8 @@ class Swarm():
 	def __init__(self, num_drones, shape="cube"):
 		self.N = num_drones
 		self.drones = []
-		self.training = True
+		self.training  = True
+		self.use_model = True
 		self.using_expansion = False # For experiments
 		self.pred_horz = 0
 		self.expansion_timer = 0
@@ -101,7 +102,7 @@ class Swarm():
 			if self.training:
 				d.update_training()
 			else:
-				d.update_inference(self.model)
+				d.update_inference(self.model, self.use_model)
 		
 		# Data Gathering/Model Training
 		if self.training:  
