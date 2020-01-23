@@ -1,5 +1,5 @@
 # Size of time step
-DT = 0.01
+DT = 0.005
 
 # Drone 
 DRONE_MASS = 1.0
@@ -16,7 +16,7 @@ PID_I = 0.05
 PID_D = 125.0
 
 # Parameters for Wind Distribution
-START_P     = 0.05
+START_P     = 0.01
 LENGTH_MEAN = 50
 LENGTH_VAR  = 10
 ANGLE_MEAN  = 10.0 # Should be in radians.

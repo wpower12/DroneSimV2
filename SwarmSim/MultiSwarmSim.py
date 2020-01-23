@@ -3,7 +3,7 @@ from . import Wind  as W
 from . import MultiSwarmAnimator as A
 
 class MultiSwarmSim():
-	def __init__(self, swarms, animate=True):
+	def __init__(self, swarms, rnd_seed, animate=True):
 		# Assuming swarms holds a list of swarms:
 		# [[num_drones, type, plot_color, inital_position, target],..,[...]]
 		self.swarms = []
@@ -16,7 +16,7 @@ class MultiSwarmSim():
 			new_sim.init_drone_PIDs()
 			self.swarms.append(new_sim)
 
-		self.wind = W.Wind()
+		self.wind = W.Wind(rnd_seed)
 		self.animating = animate
 		if self.animating:
 			self.anm  = A.MultiSwarmAnimator()	

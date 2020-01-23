@@ -7,7 +7,8 @@ ANIMATE = True
 
 swarm_options = [27, "cube", "g", [0,0,0], [20,20,20]]
 
-sim = SingleSwarmSim(swarm_options, ANIMATE)
+rnd_seed = 0
+sim = SingleSwarmSim(swarm_options, rnd_seed, ANIMATE)
 
 for t in range(NUM_TRAINING_STEPS):
 	sim.tick()

@@ -2,7 +2,7 @@ import numpy as np
 from . import constants as C
 
 class Wind():
-	def __init__(self):
+	def __init__(self, rnd_seed):
 		self.gusting = False
 		self.gust_length = 0 # How many ticks (state-advances) a gust lasts
 		self.gust_timer  = 0 # How long a gust has been going
@@ -13,6 +13,9 @@ class Wind():
 
 		# The above 2 will resolve into a single 3 vector
 		self.gust_vect = None
+
+		# Lets us ensure we have the same state between invocations
+		self.prng = np.random.RandomState(rnd_seed)
 
 	def set_seed(self, n):
 		np.random.seed = n
@@ -43,17 +46,17 @@ class Wind():
 	#### Keeping the sampling split out in case I want to do anything
 	#### 'extra' with them before/after sampling. 
 	def sample_start(self):
-		return np.random.binomial(1, C.START_P)
+		return self.prng.binomial(1, C.START_P)
 
 	def sample_length(self):
 		# TODO - Check if this is an ok way to get a 'discrete' normal
-		return int(np.random.normal(C.LENGTH_MEAN, C.LENGTH_VAR))
+		return int(self.prng.normal(C.LENGTH_MEAN, C.LENGTH_VAR))
 
 	def sample_angle(self):
-		return np.random.normal(C.ANGLE_MEAN, C.ANGLE_VAR)
+		return self.prng.normal(C.ANGLE_MEAN, C.ANGLE_VAR)
 
 	def sample_mag(self):
-		return np.random.normal(C.MAG_MEAN, C.MAG_VAR)
+		return self.prng.normal(C.MAG_MEAN, C.MAG_VAR)
 
 	def resolve_vector(self):
 		x = self.gust_mag * np.cos(self.gust_angle)

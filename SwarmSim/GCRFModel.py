@@ -3,6 +3,7 @@ from . import constants as C
 from .Regressors.MyMultiOutputRegressor import MyMultiOutputRegressor
 
 from sklearn.linear_model import LinearRegression
+from sklearn.neural_network import MLPRegressor
 from sklearn.tree         import DecisionTreeRegressor
 from sklearn.multioutput  import MultiOutputRegressor
 
@@ -17,6 +18,7 @@ class GCRFModel():
 		self.regs = []
 		for i in range(K):
 			self.regs.append(MultiOutputRegressor(LinearRegression()))
+			#self.regs.append(MultiOutputRegressor(MLPRegressor()))
 			#self.regs.append(LinearRegression())
 
 	def train(self, S, X, Y):
@@ -86,8 +88,8 @@ class GCRFModel():
 		Q = beta*L + gamma*np.eye(N)
 		mu = np.linalg.solve(Q,np.dot(R,alpha))
 		
-		return mu[d_index]
-		#return R[d_index, :, 0]
+		#return mu[d_index]
+		return R[d_index, :, 0]
 		#return R[d_index, :, 1]
 
 def GCRF_objective(params, L, R, Y):

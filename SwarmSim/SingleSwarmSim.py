@@ -3,14 +3,14 @@ from . import Wind  as W
 from . import SingleSwarmAnimator as A
 
 class SingleSwarmSim():
-	def __init__(self, swarm, animate=True):
+	def __init__(self, swarm, rnd_seed, animate=True):
 		num_drones, swarm_type, color, pos, target = swarm
 		self.sim = S.Swarm(num_drones, swarm_type)
 		self.sim.color = color
 		self.sim.set_swarm_pos_relative(pos)
 		self.sim.set_swarm_target_relative(target)
 		self.sim.init_drone_PIDs()
-		self.wind = W.Wind()
+		self.wind = W.Wind(rnd_seed)
 		self.in_training = True
 		self.plot_errors = False
 		self.animating = animate
