@@ -30,8 +30,10 @@ class MultiSwarmSim():
 		for s in self.swarms:
 			s.tick(self.wind)
 
-	def start_inference(self, ph):
+	def start_inference(self, use_model=True):
 		for s in self.swarms:
 			s.training = False
-			s.use_expansion(ph)
 
+	def use_expansion(self, ph):
+		for s in self.swarms:
+			s.use_expansion(ph)

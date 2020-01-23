@@ -217,7 +217,7 @@ class Swarm():
 		print(np.shape(self.data_x), np.shape(self.hdata_x))
 
 	def dump_locations(self):
-		return [d.pos for d in self.drones]
+		return np.asarray([d.pos for d in self.drones])
 
 
 # Going to need these later. For now, assuming fully connected G so

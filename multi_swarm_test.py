@@ -14,7 +14,8 @@ for t in range(NUM_TRAINING_STEPS):
 	m_sim.animate()
 	m_sim.tick()
 
-# m_sim.start_inference(PREDICTION_HORZ)
+# m_sim.start_inference(TRUE)
+# m_sim.use_expansion(PREDICTION_HORZ)
 
 # for t in range(NUM_INFERENCE_STEPS):
 # 	m_sim.animate()

@@ -1,5 +1,5 @@
 run, seed, model error, dr error, diff
-0, 4634185, 10, 10, 0
-1, 4423231, 10, 10, 0
+0, -2645596, 10, 10, 0
+1, 8005365, 10, 10, 0
 total error: 0
 ave error: 0.0
