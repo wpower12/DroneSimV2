@@ -17,14 +17,11 @@ class Swarm():
 		self.expansion_state = C.EXP_OFF
 		self.color = "k" # Black
 
-		# Current Dataset
-		self.data_window = []
+		# Dataset
+		self.data_full_x = []
+		self.data_full_y = []
 		self.data_x = [] 
 		self.data_y = []
-
-		# Historical Data	
-		self.hdata_x = []
-		self.hdata_y = [] 
 
 		# GCRF Model.
 		self.model = M.GCRFModel(C.NUM_REGRESSORS, C.WINDOW_SIZE)
@@ -205,21 +202,19 @@ class Swarm():
 		pass
 
 	def update_data(self, wind_val):
+		# Collecting new X
 		new_data = []
 		for d in self.drones:
 			new_data.append(d.pos)
+		self.data_full_x.append(new_data)
 
-		self.data_window.append(new_data)
-		if len(self.data_window) > C.WINDOW_SIZE+1:
-			self.data_window = self.data_window[1:]
-			# self.data_window should now be len W+1
-			self.data_x = self.data_window[:C.WINDOW_SIZE]
-			self.data_y = self.data_window[1:]
+		# Grab new Y - This will be the Y for the next timestep?
+		self.data_full_y.append(wind_val)
 
-		# Update historical data lists
-		if len(self.data_x) == C.WINDOW_SIZE:
-			self.hdata_x.append(np.copy(self.data_x))
-			self.hdata_y.append(np.copy(self.data_y))
+		if len(self.data_full_x) > C.WINDOW_SIZE+1:
+			self.data_x = self.data_full_x[-(C.WINDOW_SIZE+1):]
+			self.data_x = self.data_x[:C.WINDOW_SIZE]
+			self.data_y = self.data_full_y[-C.WINDOW_SIZE:]
 
 	######################
 	def dump_state(self):

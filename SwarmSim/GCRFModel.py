@@ -17,19 +17,22 @@ class GCRFModel():
 		### Weak Learners ###
 		self.regs = []
 		for i in range(K):
-			self.regs.append(MultiOutputRegressor(LinearRegression()))
-			#self.regs.append(MultiOutputRegressor(MLPRegressor()))
+			# self.regs.append(MultiOutputRegressor(LinearRegression()))
+			self.regs.append(MultiOutputRegressor(MLPRegressor()))
 			#self.regs.append(LinearRegression())
 
 	def train(self, S, X, Y):
-		
-		X      = flatten_shape(np.array(X))
-		Y_flat = flatten_shape(np.array(Y))
-		Y      = tensorize_Y(np.array(Y))
-
+		# Construct the L of S
 		(N, _) = np.shape(S)
 		S = (S/sum(sum(S))) * N
 		L = np.diag(sum(S)) - S
+
+		# Reshape the data.
+		X          = flatten_shape(np.array(X))
+		Y_expanded = np.expand_dims(Y, 1)
+		Y_flat     = broadcast_y(flatten_shape(Y_expanded), N)
+		Y          = tensorize_Y(Y_expanded)
+
 		
 		R = self.fit_weak_learners(X, Y_flat)
 		(_,_,D) = np.shape(R)
@@ -49,6 +52,7 @@ class GCRFModel():
 		self.theta = res.x
 
 	def fit_weak_learners(self, X, Y):
+		print(np.shape(X), np.shape(Y))
 		R_train = []
 		for wl in self.regs:
 			wl.fit(X, Y)
@@ -121,6 +125,15 @@ def flatten_shape(X):
 	for t in range(0,T):
 		flat[t*N:t*N+N, :] = X[t, :, :]
 	return flat
+
+def broadcast_y(Y, N):
+	(T, d) = np.shape(Y)
+	broad_y = np.zeros((T*N, d), dtype=float)
+	for t in range(T):
+		for n in range(N):
+			broad_y[t+n] = Y[t]
+	return broad_y
+
 
 def tensorize_Y(Y_old):
 	# Just reshaping Y - it is in shape (T, N, D)
