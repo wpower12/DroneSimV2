@@ -52,7 +52,7 @@ class GCRFModel():
 		self.theta = res.x
 
 	def fit_weak_learners(self, X, Y):
-		print(np.shape(X), np.shape(Y))
+		# print(np.shape(X), np.shape(Y))
 		R_train = []
 		for wl in self.regs:
 			wl.fit(X, Y)
@@ -60,16 +60,6 @@ class GCRFModel():
 		return np.array(R_train)
 
 	def predict(self, X, S, d_index):
-		#return np.zeros((3))
-		
-		# predict(self, X, S):
-		
-		# if we are predicting the drones' positions at t,
-		# then X should contain the (t-1-w : t - 1) windows for all drones
-		
-		# Call the predict() method for the weak learners to calculate R
-		# ...
-		
 		X = np.array(X)[-1, :, :]
 		
 		#R = self.regs[0].predict(X)
