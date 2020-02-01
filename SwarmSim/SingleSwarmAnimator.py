@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
 class SingleSwarmAnimator():
-	def __init__(self):
+	def __init__(self, fig_title):
 		plt.ion()
-		self.fig = plt.figure()
+		self.fig = plt.figure(num=fig_title)
 		self.ax  = self.fig.add_subplot(111, projection='3d')
 		self.xlim = [0,100]
 		self.ylim = [0,100]
@@ -28,7 +28,7 @@ class SingleSwarmAnimator():
 
 	def plot_drone(self, d, in_training=True):
 		x, y, z = d.pos
-
+		
 		self.ax.plot([x], [y], [z], self.color_str)
 
 		if len(d.H_pos) > 0:

@@ -32,7 +32,7 @@ class Wind():
 			self.gust_timer += 1
 			if self.gust_timer > self.gust_length:
 				self.gusting = False
-				print("Gust over!")
+				#print("Gust over!")
 		else: # Not Gusting
 			if self.sample_start() == 1:
 				self.gusting = True
@@ -40,8 +40,8 @@ class Wind():
 				self.gust_angle  = self.sample_angle()
 				self.gust_mag    = self.sample_mag()
 				self.gust_vect   = self.resolve_vector()
-				print("Gusting!")
-				print(self.gust_length, self.gust_mag)
+				#print("Gusting!")
+				#print(self.gust_length, self.gust_mag)
 
 	#### Keeping the sampling split out in case I want to do anything
 	#### 'extra' with them before/after sampling. 

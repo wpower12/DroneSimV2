@@ -2,7 +2,7 @@ import numpy as np
 from . import constants as C
 from .Regressors.MyMultiOutputRegressor import MyMultiOutputRegressor
 
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.neural_network import MLPRegressor
 from sklearn.tree         import DecisionTreeRegressor
 from sklearn.multioutput  import MultiOutputRegressor
@@ -10,77 +10,84 @@ from sklearn.multioutput  import MultiOutputRegressor
 from scipy.optimize import minimize
 
 class GCRFModel():
-	def __init__(self, K, T):
-		self.K = K
-		self.T = T
+	def __init__(self):
 
 		### Weak Learners ###
-		self.regs = []
-		for i in range(K):
-			self.regs.append(MultiOutputRegressor(LinearRegression()))
-			#self.regs.append(MultiOutputRegressor(MLPRegressor()))
-			#self.regs.append(LinearRegression())
-
+		self.weak_learners = []
+		self.weak_learners.append(MultiOutputRegressor(LinearRegression()))
+		#self.weak_learners.append(MultiOutputRegressor(Ridge()))
+		#self.weak_learners.append(MultiOutputRegressor(MLPRegressor()))
+	
+			
 	def train(self, S, X, Y):
 		
-		X      = flatten_shape(np.array(X))
-		Y_flat = flatten_shape(np.array(Y))
-		Y      = tensorize_Y(np.array(Y))
-
-		(N, _) = np.shape(S)
+		#print('==== train() ====')
+		#print(S.shape)
+		#print(X.shape)
+		#print(Y.shape)
+		
+		[N, d_in, T] = X.shape
+		[_, d_out, _] = Y.shape
+		
+		self.N = N
+		self.d_in = d_in
+		self.T = T
+		self.d_out = d_out
+		self.K = len(self.weak_learners)
+		
+		# =========================================================================
+		
+		# Unfold X and Y by vertically stacking their 
+		# slices across all training timesteps
+		X_unfolded = flatten_tensor(X)
+		Y_unfolded = flatten_tensor(Y)
+		
+		# Train one (or multiple) weak learners
+		K = len(self.weak_learners)
+		R_unfolded = np.zeros((Y_unfolded.shape[0],Y_unfolded.shape[1],K), dtype=float)
+		for k in range(0,K):
+			self.weak_learners[k].fit(X_unfolded, Y_unfolded)
+			R_unfolded[:,:,k] = self.weak_learners[k].predict(X_unfolded)
+		
+		# Fold R_unfolded into a tensor of T slices, 
+		# each being of shape N x d_out x K
+		R = tensorize_R(R_unfolded, [N, d_out, K, T])
+		# =========================================================================
+		
+		# Temporal GCRF training
+		# print('Temporal GCRF training ...')
+		# theta <- GCRF_TRAIN(Y,S,R)
+		
 		S = (S/sum(sum(S))) * N
 		L = np.diag(sum(S)) - S
 		
-		R = self.fit_weak_learners(X, Y_flat)
-		(_,_,D) = np.shape(R)
-		R = tensorize_R(R, (N, D, self.K, self.T))
-		
-		alpha = np.ones((self.K,))
-		beta  = np.zeros((1,))
+		# Initialize params
+		alpha = np.ones(K)
+		beta = 0
 		params = np.append(alpha, beta)
 
-		cons = ({'type': 'ineq', 'fun' : lambda params: sum(params[0:self.K])},
-				{'type': 'ineq', 'fun' : lambda params: params[self.K]})
-
-		# print(np.shape(L), np.shape(R), np.shape(Y))
+		cons = ({'type': 'ineq', 'fun' : lambda params: sum(params[0:K])},
+				{'type': 'ineq', 'fun' : lambda params: params[K]})
+		
 		res = minimize(GCRF_objective, params, args=(L,R,Y), #jac=GCRF_objective_deriv,
-				  	   constraints=cons, method='SLSQP', options={'maxiter': 1000, 'disp': False})
+				  	   constraints=cons, method='SLSQP', options={'maxiter': 10000, 'disp': False})
 		
 		self.theta = res.x
-
-	def fit_weak_learners(self, X, Y):
-		R_train = []
-		for wl in self.regs:
-			wl.fit(X, Y)
-			R_train.append(wl.predict(X))
-		return np.array(R_train)
-
-	def predict(self, X, S, d_index):
-		#return np.zeros((3))
+	
+	
+	def predict(self, X, S, d_index, use_structure):
 		
-		# predict(self, X, S):
-		
-		# if we are predicting the drones' positions at t,
-		# then X should contain the (t-1-w : t - 1) windows for all drones
-		
-		# Call the predict() method for the weak learners to calculate R
-		# ...
-		
-		X = np.array(X)[-1, :, :]
-		
-		#R = self.regs[0].predict(X)
-		#for k in range(1, len(self.regs)):
-		#	R = np.concatenate((R, self.regs[k].predict(X)), axis=0)
-		
-		R = np.zeros((X.shape[0], X.shape[1], self.K), dtype=float)
+		R = np.zeros((X.shape[0], self.d_out, self.K), dtype=float)
 		for k in range(0, self.K):
-			R[:,:,k] = self.regs[k].predict(X)
-		
-		
+			R[:,:,k] = self.weak_learners[k].predict(X)
+			
+		# =========================================================================
+			
+		# mu <- GCRF_PREDICT(theta, S, R)
 		(N,d_out,K) = R.shape
 		S = (S/sum(sum(S))) * N
 		L = np.diag(sum(S)) - S
-
+		
 		alpha = self.theta[0:K]
 		gamma = sum(alpha)
 		beta = self.theta[K]
@@ -90,19 +97,20 @@ class GCRFModel():
 		
 		#return mu[d_index]
 		return R[d_index, :, 0]
-		#return R[d_index, :, 1]
+
+
 
 def GCRF_objective(params, L, R, Y):
 	(N,d_out,K,T) = R.shape
 	alpha = params[0:K]
 	beta = params[K]
 	epsilon = 0.0#1e-8
-	
+
 	gamma = sum(alpha)
 	Q = beta*L + gamma*np.eye(N)
 	#Q_inv = np.linalg.inv(Q)
 	Q_inv = np.linalg.pinv(Q) # Optional
-	
+
 	neg_ll = 0
 	for t in range(0,T):
 		for j in range(0,d_out):
@@ -112,48 +120,23 @@ def GCRF_objective(params, L, R, Y):
 			e = Y[:,j,t] - mu
 			neg_ll = neg_ll - np.dot(np.dot(e.T, Q), e) - 0.5*np.log(np.linalg.det(Q_inv) + epsilon)
 	neg_ll = -neg_ll
-	
-	return neg_ll
 
-def flatten_shape(X):
-	[T, N, d] = np.shape(X)
-	flat = np.zeros((T*N, d), dtype=float)
+	return neg_ll	
+
+
+def flatten_tensor(tensor):
+	[N, d, T] = tensor.shape
+	tensor_flat = np.zeros((T*N, d), dtype=float)
 	for t in range(0,T):
-		flat[t*N:t*N+N, :] = X[t, :, :]
-	return flat
-
-def tensorize_Y(Y_old):
-	# Just reshaping Y - it is in shape (T, N, D)
-	# Need it to be (N, D, T)
-	(T, N, D) = np.shape(Y_old)
-	Y = np.zeros((N, D, T))
-	for n in range(N):
-		for d in range(D):
-			for t in range(T):
-				Y[n][d][t] = Y_old[t][n][d]
-	return Y
+		tensor_flat[t*N:t*N+N, :] = tensor[:, :, t]
+	return tensor_flat
 
 
 def tensorize_R(R_flat, dim):
-	# R_flat    is shape (K, N*T, D)
-	# Want R to be shape (N, D, K, T)?
-	[N, D, K, T] = dim
-	R = np.zeros((N, D, K, T), dtype=float)
-	for d in range(D):
-		for k in range(K):
-			for n in range(N):
-				for t in range(T):
-					R[n][d][k][t] = R_flat[k][n*t][d]
+	[N, d, K, T] = dim
+	R = np.zeros((N, d, K, T), dtype=float)
+	for t in range(0,T):
+		R[:,:,:,t] = R_flat[t*N:t*N+N, :, :]
 	return R
 
-
-def threshold(S):
-	(N, _) = np.shape(S)
-	S_thresh = np.zeros((N, N))
-	for i in range(N):
-		for j in range(N):
-			if S[i][j] < (C.SEPARATION - 0.1):
-				S_thresh[i][j] = 1
-	return S_thresh
-
-
+		
