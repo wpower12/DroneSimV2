@@ -230,7 +230,7 @@ class Swarm():
 				self.curr_Y[i, 1] = self.data_window[-1][i][1]
 				self.curr_Y[i, 2] = self.data_window[-1][i][2]
 			
-			if self.timestep < self.T_train:
+			if (self.timestep - C.WINDOW_SIZE) < self.T_train:
 				self.X[:, :, self.timestep-C.WINDOW_SIZE] = np.copy(self.curr_X)
 				self.Y[:, :, self.timestep-C.WINDOW_SIZE] = np.copy(self.curr_Y)
 			
@@ -240,11 +240,8 @@ class Swarm():
 	def dump_state(self):
 		print(np.shape(self.data_x), np.shape(self.hdata_x))
 
-	def dump_locations(self, return_true_positions, timestep_type):
+	def dump_locations(self, return_true_positions):
 		if return_true_positions:
-			return np.asarray([d.pos for d in self.drones])
-
-		if timestep_type == 'training':
 			return np.asarray([d.pos for d in self.drones])
 		else:
 			return np.asarray([d.pos_estimate for d in self.drones])

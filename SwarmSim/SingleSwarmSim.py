@@ -37,5 +37,5 @@ class SingleSwarmSim():
 	def use_expansion(self, ph):
 		self.sim.use_expansion(ph)
 
-	def dump_drone_locations(self, return_true_positions, timestep_type):
-		return self.sim.dump_locations(return_true_positions, timestep_type)
+	def dump_drone_locations(self, return_true_positions):
+		return self.sim.dump_locations(return_true_positions)

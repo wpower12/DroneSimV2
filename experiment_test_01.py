@@ -56,7 +56,7 @@ for n in range(NUM_RUNS):
 	
 	# without Model
 	np.random.seed = rnd_seed
-	sim = SingleSwarmSim(swarm_options, rnd_seed, NUM_TRAINING_STEPS, None, ' Dead reckoning', ANIMATE)
+	sim = SingleSwarmSim(swarm_options, rnd_seed, NUM_TRAINING_STEPS, None, 'Dead reckoning', ANIMATE)
 	sim.set_seed(rnd_seed)
 	for i in range(NUM_TRAINING_STEPS):
 		sim.tick()
@@ -68,9 +68,9 @@ for n in range(NUM_RUNS):
 	for i in range(NUM_INFERENCE_STEPS):
 		sim.tick()
 		
-		target_locations = sim.dump_drone_locations(True, None)
+		target_locations = sim.dump_drone_locations(True)
 		
-		dr_locations = sim.dump_drone_locations(False, 'inference')
+		dr_locations = sim.dump_drone_locations(False)
 		dr_error += calculate_error(target_locations, dr_locations)
 	dr_error /= NUM_INFERENCE_STEPS
 	
@@ -92,9 +92,9 @@ for n in range(NUM_RUNS):
 	for i in range(NUM_INFERENCE_STEPS):
 		sim.tick()
 		
-		target_locations = sim.dump_drone_locations(True, None)
+		target_locations = sim.dump_drone_locations(True)
 		
-		model_locations = sim.dump_drone_locations(False, 'inference')
+		model_locations = sim.dump_drone_locations(False)
 		model_error += calculate_error(target_locations, model_locations)
 	model_error /= NUM_INFERENCE_STEPS
 
@@ -116,9 +116,9 @@ for n in range(NUM_RUNS):
 	for i in range(NUM_INFERENCE_STEPS):
 		sim.tick()
 		
-		target_locations = sim.dump_drone_locations(True, None)
+		target_locations = sim.dump_drone_locations(True)
 		
-		model_locations = sim.dump_drone_locations(False, 'inference')
+		model_locations = sim.dump_drone_locations(False)
 		model_error += calculate_error(target_locations, model_locations)
 	model_error /= NUM_INFERENCE_STEPS
 

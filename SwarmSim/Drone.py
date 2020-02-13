@@ -70,7 +70,7 @@ class Drone():
 		self.update_state_from_pos(self.pos)
 
 		# Update position.
-		self.pos += self.vel
+		self.pos += self.vel*C.DT
 		self.H_pos.append(np.copy(self.pos))
 
 		# Save that in the estimated position
@@ -89,14 +89,14 @@ class Drone():
 
 		# Finally, update current estimate of position
 		self.H_pos_est.append(np.copy(self.pos_estimate))
-		self.pos_estimate += self.vel
+		self.pos_estimate += self.vel*C.DT
 
 		# We also update the 'real' position, because the real position
 		# has already been moved by the wind, the effect of the PID's 
 		# changes to the acceleration are still impacting the true
 		# location ONTOP of the wind moving it. 
 		self.H_pos.append(np.copy(self.pos))
-		self.pos += self.vel
+		self.pos += self.vel*C.DT
 
 	def model_update(self):
 		# TODO
