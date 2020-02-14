@@ -4,14 +4,10 @@ from . import constants as C
   
 class Drone():
 	def __init__(self):
-		self.maxv = C.MAX_VEL
-		self.maxa = C.MAX_ACC
-		self.m    = C.DRONE_MASS
-
-		# State Vectors 
+		# State Vectors
 		self.pos = np.zeros((3)) # ACTUAL Location
-		self.vel = np.zeros((3))
-		self.acc = np.zeros((3))
+		self.vel = np.zeros((3)) # Drone Velocity
+		self.acc = np.zeros((3)) # Drone Acceleration
 		self.pos_estimate = np.zeros((3)) # Estimated via deadreckoning
 		self.exp_vector   = np.zeros((3)) # For the expansion procedure
 
@@ -33,7 +29,6 @@ class Drone():
 		# Models/External State
 		# self.others_pos    = [] # last known pos of other drones
 		# self.others_models = [] # model parameters for other drones
-		# self.model = None # The ML model we are using?
 
 	def set_target(self, t):
 		self.target = np.copy(t)
@@ -47,22 +42,23 @@ class Drone():
 		self.PID_Z = PID(C.PID_P, C.PID_I, C.PID_D, setpoint=z)
 
 	def update_state_from_pos(self, pos):
+		# Update output limits manually so that we wouldn't clamp the last integral and the last output value
+		self.PID_X.output_limits = (-1.0 * C.MAX_ACC - self.acc[0], C.MAX_ACC - self.acc[0])
+		self.PID_Y.output_limits = (-1.0 * C.MAX_ACC - self.acc[1], C.MAX_ACC - self.acc[1])
+		self.PID_Z.output_limits = (-1.0 * C.MAX_ACC - self.acc[2], C.MAX_ACC - self.acc[2])
+
 		# Changes in acc are the outputs of the PID controllers
-		dAcc_x = self.PID_X(pos[0])
-		dAcc_y = self.PID_Y(pos[1])
-		dAcc_z = self.PID_Z(pos[2])
+		dAcc_x = self.PID_X(pos[0], dt=C.DT)
+		dAcc_y = self.PID_Y(pos[1], dt=C.DT)
+		dAcc_z = self.PID_Z(pos[2], dt=C.DT)
 
-		# Update acc's by clamp adding the above to them.
-		n_acc_x = clamp_add(self.acc[0], dAcc_x, C.MAX_ACC)
-		n_acc_y = clamp_add(self.acc[1], dAcc_y, C.MAX_ACC)
-		n_acc_z = clamp_add(self.acc[2], dAcc_z, C.MAX_ACC)
-		self.acc = np.asarray([n_acc_x, n_acc_y, n_acc_z])
+		# Update acc's by clamp adding differences in acceleration (previously clamped by setting output_limits)
+		self.acc = np.asarray([self.acc[0] + dAcc_x, self.acc[1] + dAcc_y, self.acc[2] + dAcc_z])
 
-		# Update vel's by clamp adding the acc's to them.
-		# Note we are adding acc*DT to the vel
-		n_vel_x = clamp_add(self.vel[0], n_acc_x*C.DT, C.MAX_VEL)
-		n_vel_y = clamp_add(self.vel[1], n_acc_y*C.DT, C.MAX_VEL)
-		n_vel_z = clamp_add(self.vel[2], n_acc_z*C.DT, C.MAX_VEL)
+		# Update velocities by clamp adding the velocity contributions obtained from accelerating DT 'seconds'.
+		n_vel_x = clamp_add(self.vel[0], self.acc[0] * C.DT, C.MAX_VEL)
+		n_vel_y = clamp_add(self.vel[1], self.acc[1] * C.DT, C.MAX_VEL)
+		n_vel_z = clamp_add(self.vel[2], self.acc[2] * C.DT, C.MAX_VEL)
 		self.vel = np.asarray([n_vel_x, n_vel_y, n_vel_z])
 
 	def update_training(self):
